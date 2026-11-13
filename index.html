@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>To-Do List</title>
+    <style>
+      :root {
+        --bg: #f4f7fb;
+        --card: #ffffff;
+        --primary: #4f46e5;
+        --primary-dark: #3730a3;
+        --text: #1f2937;
+        --muted: #6b7280;
+        --border: #e5e7eb;
+        --success: #22c55e;
+        --danger: #ef4444;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        font-family: Arial, Helvetica, sans-serif;
+        background: linear-gradient(135deg, #eef2ff, #f8fafc);
+        color: var(--text);
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+      }
+
+      .todo-app {
+        width: min(92vw, 520px);
+        background: var(--card);
+        border-radius: 18px;
+        box-shadow: 0 20px 45px rgba(79, 70, 229, 0.12);
+        padding: 28px 22px 20px;
+      }
+
+      h1 {
+        margin: 0 0 18px;
+        font-size: 2rem;
+        text-align: center;
+        color: var(--primary-dark);
+      }
+
+      .input-row {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 18px;
+      }
+
+      input[type="text"] {
+        flex: 1;
+        padding: 13px 14px;
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        font-size: 1rem;
+        outline: none;
+        transition: border-color 0.2s ease;
+      }
+
+      input[type="text"]:focus {
+        border-color: var(--primary);
+      }
+
+      button {
+        border: none;
+        border-radius: 10px;
+        padding: 12px 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: transform 0.15s ease, opacity 0.2s ease;
+      }
+
+      button:hover {
+        transform: translateY(-1px);
+      }
+
+      .add-btn {
+        background: var(--primary);
+        color: #fff;
+      }
+
+      .task-list {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+      }
+
+      .task-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        background: #f9fafb;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 12px 10px;
+        margin-bottom: 10px;
+      }
+
+      .task-item.completed .task-text {
+        text-decoration: line-through;
+        color: var(--muted);
+      }
+
+      .task-check {
+        appearance: none;
+        width: 18px;
+        height: 18px;
+        border: 2px solid var(--primary);
+        border-radius: 50%;
+        position: relative;
+        cursor: pointer;
+        background: #fff;
+      }
+
+      .task-check:checked {
+        background: var(--success);
+        border-color: var(--success);
+      }
+
+      .task-check:checked::after {
+        content: "";
+        position: absolute;
+        left: 4px;
+        top: 1px;
+        width: 5px;
+        height: 9px;
+        border: solid white;
+        border-width: 0 2px 2px 0;
+        transform: rotate(45deg);
+      }
+
+      .task-text {
+        flex: 1;
+        word-break: break-word;
+      }
+
+      .delete-btn {
+        background: transparent;
+        color: var(--danger);
+        padding: 8px 10px;
+        font-size: 0.9rem;
+      }
+
+      .empty-state {
+        text-align: center;
+        color: var(--muted);
+        padding: 16px 10px;
+        border: 1px dashed var(--border);
+        border-radius: 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="todo-app">
+      <h1>To-Do List</h1>
+
+      <div class="input-row">
+        <input type="text" id="taskInput" placeholder="Add a task..." />
+        <button class="add-btn" id="addBtn">Add</button>
+      </div>
+
+      <ul class="task-list" id="taskList"></ul>
+    </div>
+
+    <script>
+      const taskInput = document.getElementById('taskInput');
+      const taskList = document.getElementById('taskList');
+      const addBtn = document.getElementById('addBtn');
+
+      function createTaskItem(text, completed = false) {
+        const li = document.createElement('li');
+        li.className = 'task-item' + (completed ? ' completed' : '');
+
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.className = 'task-check';
+        checkbox.checked = completed;
+
+        const taskText = document.createElement('span');
+        taskText.className = 'task-text';
+        taskText.textContent = text;
+
+        const deleteBtn = document.createElement('button');
+        deleteBtn.className = 'delete-btn';
+        deleteBtn.textContent = 'Delete';
+
+        checkbox.addEventListener('change', () => {
+          li.classList.toggle('completed', checkbox.checked);
+        });
+
+        deleteBtn.addEventListener('click', () => {
+          li.remove();
+          updateEmptyState();
+        });
+
+        li.appendChild(checkbox);
+        li.appendChild(taskText);
+        li.appendChild(deleteBtn);
+
+        return li;
+      }
+
+      function updateEmptyState() {
+        const tasks = document.querySelectorAll('.task-item');
+        if (tasks.length === 0) {
+          if (!document.querySelector('.empty-state')) {
+            const empty = document.createElement('li');
+            empty.className = 'empty-state';
+            empty.textContent = 'No tasks yet. Add one above!';
+            taskList.appendChild(empty);
+          }
+        } else {
+          const empty = document.querySelector('.empty-state');
+          if (empty) empty.remove();
+        }
+      }
+
+      function addTask() {
+        const value = taskInput.value.trim();
+        if (!value) {
+          taskInput.focus();
+          return;
+        }
+
+        taskList.appendChild(createTaskItem(value));
+        taskInput.value = '';
+        taskInput.focus();
+        updateEmptyState();
+      }
+
+      addBtn.addEventListener('click', addTask);
+
+      taskInput.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter') {
+          addTask();
+        }
+      });
+
+      updateEmptyState();
+    </script>
+  </body>
+</html>
